@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://i.ibb.co/hcsYqmp/asdawdsac.jpg" type="image/png">
+    <title>R0b327 | Lookup Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://metro.co.uk/wp-content/uploads/2022/03/Cyberwarfare-is-the-battleground-of-the-21st-century-and-were-all-involved-BP-29e0.gif') repeat;
+            background-size: cover;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 400px;
+            height: 650px;
+            border-radius: 15px;
+            background-color: #111;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .bot-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background-color: #222;
+            border-bottom: 1px solid #333;
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .bot-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .bot-title {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .message-area {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background-color: #000;
+        }
+
+        .bot-message, .user-message {
+            max-width: 75%;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .bot-message {
+            background-color: #333;
+            color: #ccc;
+            align-self: flex-start;
+        }
+
+        .user-message {
+            background-color: #5865F2;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .footer {
+            display: flex;
+            padding: 10px;
+            background-color: #222;
+            border-top: 1px solid #333;
+        }
+
+        .input-message {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #fff;
+            background-color: #444;
+            outline: none;
+        }
+
+        .send-button {
+            margin-left: 10px;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: #5865F2;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .send-button:hover {
+            background-color: #4a54e1;
+        }
+
+        .command-response {
+            font-size: 14px;
+            color: #88d8d8;
+        }
+
+        .error-response {
+            font-size: 14px;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="bot-header">
+            <div class="bot-avatar">
+                <img src="https://i.ibb.co/hcsYqmp/asdawdsac.jpg" alt="Bot Avatar">
+            </div>
+            <div class="bot-title">R0b327 | Lookup Bot</div>
+        </div>
+
+        <div class="message-area" id="chatArea">
+            <div class="bot-message">Lookup Bot! Type <b>/help</b> to see available commands.</div>
+            <div class="bot-message">
+                <span>Github: </span>
+                <a href="https://github.com/R0b327/LookupBot" target="_blank" style="color: #5865F2; text-decoration: none;">
+                    https://github.com/R0b327/LookupBot
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <input type="text" class="input-message" id="userInput" placeholder="Enter command...">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to send message
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            const chatArea = document.getElementById('chatArea');
+
+            if (message) {
+                
+                const userMessage = document.createElement('div');
+                userMessage.className = 'user-message';
+                userMessage.innerText = message;
+                chatArea.appendChild(userMessage);
+
+                
+                input.value = '';
+
+                
+                try {
+                    const response = await fetch('http://localhost:3000/execute-command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: message })
+                    });
+
+                    const data = await response.json();
+
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'bot-message';
+
+                    if (data.success) {
+                        botMessage.innerHTML = `<span class="command-response">${data.message}</span>`;
+                    } else {
+                        botMessage.innerHTML = `<span class="error-response">${data.message}</span>`;
+                    }
+
+                    chatArea.appendChild(botMessage);
+                    chatArea.scrollTop = chatArea.scrollHeight;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'bot-message';
+                    botMessage.innerHTML = '<span class="error-response">Error communicating with the server.</span>';
+                    chatArea.appendChild(botMessage);
+                    chatArea.scrollTop = chatArea.scrollHeight;
+                }
+            }
+        }
+
+        // Send message when the Enter key is pressed
+        document.getElementById('userInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
