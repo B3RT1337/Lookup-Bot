@@ -8,3 +8,6 @@ npm install axios
 npm install express
 node start.js
 ```
+
+## Screenshot
+![Bot Interface](https://i.ibb.co/CzdkBJp/hhi.png)
