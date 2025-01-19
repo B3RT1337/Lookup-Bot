@@ -1,8 +1,11 @@
 # LookupBot
 A command-based tool that provides detailed information about URLs, including DNS records, IP address lookup, and subdomain enumeration using various external APIs. It enables users to perform network and security-related queries with simple commands like /lookup to get detailed URL information, /getsub to enumerate subdomains, and /iplookup to retrieve IP address details, making it easier to gather essential data for analysis and troubleshooting.
 
-# DEFAULT PORT 3000 CHANGE IF YOU WANT
-# http://localhost:3000
+# Change locahost to your server IP
+![here](https://github.com/B3RT1337/Lookup-Bot/blob/6eb2e52b30f5c3faa1ca6f5ad7bd469c83211f08/index.html#L185C1-L185C21)
+
+
+
 
 # Install and run
 ```
