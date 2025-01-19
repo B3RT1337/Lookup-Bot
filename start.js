@@ -75,16 +75,29 @@ const getSubdomains = async (hostname) => {
 
 const getIpDetails = async (ip) => {
     try {
-        const response = await axios.get(`https://ipinfo.io/${ip}/json`);
+        const response = await axios.get(`https://ipinfo.io/${ip}/json`); // You can use your API key here
+        const data = response.data;
+
         return {
             success: true,
-            ipDetails: response.data
+            ipDetails: {
+                ip: data.ip || 'N/A',
+                hostname: data.hostname || 'N/A',
+                city: data.city || 'N/A',
+                region: data.region || 'N/A',
+                country: data.country || 'N/A',
+                loc: data.loc || 'N/A', // Latitude and Longitude
+                org: data.org || 'N/A',
+                timezone: data.timezone || 'N/A',
+                postal: data.postal || 'N/A',
+                network: data.network || 'N/A'
+            }
         };
     } catch (error) {
         console.error('Error during IP lookup:', error.message);
         return {
             success: false,
-            message: `Unable to fetch details for IP: ${ip}`
+            message: `Unable to fetch details for IP: ${ip}. ${error.message}`
         };
     }
 };
@@ -193,15 +206,20 @@ const handleCommand = async (command) => {
         const ipDetails = await getIpDetails(ip);
 
         if (ipDetails.success) {
+            const details = ipDetails.ipDetails;
             return {
                 success: true,
                 message: `
-                    🧑‍💻 IP Lookup for: ${ip} <br><br>
-                    <b>IP Address:</b> ${ip} <br>
-                    <b>Location:</b> ${ipDetails.ipDetails.city}, ${ipDetails.ipDetails.region}, ${ipDetails.ipDetails.country} <br>
-                    <b>Organization:</b> ${ipDetails.ipDetails.org} <br>
-                    <b>Hostname:</b> ${ipDetails.ipDetails.hostname} <br>
-                    <b>Location (Coordinates):</b> ${ipDetails.ipDetails.loc}
+                    🧑‍💻 IP Lookup for: ${details.ip} <br><br>
+                    <b>Hostname:</b> ${details.hostname} <br>
+                    <b>City:</b> ${details.city} <br>
+                    <b>Region:</b> ${details.region} <br>
+                    <b>Country:</b> ${details.country} <br>
+                    <b>Latitude & Longitude:</b> ${details.loc} <br>
+                    <b>Timezone:</b> ${details.timezone} <br>
+                    <b>Postal Code:</b> ${details.postal} <br>
+                    <b>Organization:</b> ${details.org} <br>
+                    <b>Network:</b> ${details.network} <br>
                 `
             };
         } else {
