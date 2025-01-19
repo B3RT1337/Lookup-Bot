@@ -6,15 +6,11 @@ const dns = require('dns').promises;
 const { URL } = require('url'); 
 const app = express();
 
-
 app.use(express.static(path.join(__dirname, '/')));
-
-
 app.use(bodyParser.json());
 
 // Define the port
 const PORT = process.env.PORT || 3000;
-
 
 const parseUrl = (inputUrl) => {
     try {
@@ -38,7 +34,6 @@ const parseUrl = (inputUrl) => {
     }
 };
 
-
 const getDnsRecords = async (hostname) => {
     try {
         const aRecords = await dns.resolve4(hostname); 
@@ -58,19 +53,13 @@ const getDnsRecords = async (hostname) => {
     }
 };
 
-
 const getSubdomains = async (hostname) => {
     try {
-        
         const response = await axios.get(`https://api.hackertarget.com/hostsearch/?q=${hostname}`);
-        
-
         const subdomains = response.data.split('\n').slice(1).map(line => {
             const columns = line.split(',');
             return columns[0]; 
         });
-
-
         return {
             success: true,
             subdomains: subdomains.filter(subdomain => subdomain)
@@ -84,11 +73,25 @@ const getSubdomains = async (hostname) => {
     }
 };
 
+const getIpDetails = async (ip) => {
+    try {
+        const response = await axios.get(`https://ipinfo.io/${ip}/json`);
+        return {
+            success: true,
+            ipDetails: response.data
+        };
+    } catch (error) {
+        console.error('Error during IP lookup:', error.message);
+        return {
+            success: false,
+            message: `Unable to fetch details for IP: ${ip}`
+        };
+    }
+};
 
 const handleCommand = async (command) => {
     const commandParts = command.split(' ');
 
-   
     if (command === '/help') {
         return {
             success: true,
@@ -96,12 +99,12 @@ const handleCommand = async (command) => {
                 <b>Available Commands:</b><br><br>
                 <b>/lookup [url]</b> - Get details of your target (URL, domains, IPs supported)<br>
                 <b>/getsub [domain]</b> - Get subdomains of a domain or full URL<br>
-                <i>Usage:</i> /lookup https://example.com, /getsub example.com or /getsub https://example.com
+                <b>/iplookup [ip]</b> - Get details of a given IP address<br>
+                <i>Usage:</i> /lookup https://example.com, /getsub example.com or /getsub https://example.com, /iplookup 8.8.8.8
             `
         };
     }
 
-    
     if (command.startsWith('/lookup')) {
         if (commandParts.length < 2) {
             return { success: false, message: '/lookup [url] - Please provide a URL to lookup.' };
@@ -148,7 +151,6 @@ const handleCommand = async (command) => {
         }
     }
 
-
     if (command.startsWith('/getsub')) {
         if (commandParts.length < 2) {
             return { success: false, message: '/getsub [domain] - Please provide a domain or URL to lookup.' };
@@ -156,9 +158,7 @@ const handleCommand = async (command) => {
 
         let domain = commandParts[1];
 
-
         if (domain.startsWith('http://') || domain.startsWith('https://')) {
-          
             const parsedUrl = parseUrl(domain);
             if (!parsedUrl.success) {
                 return { success: false, message: parsedUrl.message };
@@ -166,7 +166,6 @@ const handleCommand = async (command) => {
             domain = parsedUrl.parsedUrl.hostname; 
         }
 
-        
         const subdomains = await getSubdomains(domain);
 
         if (subdomains.success) {
@@ -185,13 +184,39 @@ const handleCommand = async (command) => {
         }
     }
 
-    
+    if (command.startsWith('/iplookup')) {
+        if (commandParts.length < 2) {
+            return { success: false, message: '/iplookup [ip] - Please provide an IP address to lookup.' };
+        }
+
+        const ip = commandParts[1];
+        const ipDetails = await getIpDetails(ip);
+
+        if (ipDetails.success) {
+            return {
+                success: true,
+                message: `
+                    🧑‍💻 IP Lookup for: ${ip} <br><br>
+                    <b>IP Address:</b> ${ip} <br>
+                    <b>Location:</b> ${ipDetails.ipDetails.city}, ${ipDetails.ipDetails.region}, ${ipDetails.ipDetails.country} <br>
+                    <b>Organization:</b> ${ipDetails.ipDetails.org} <br>
+                    <b>Hostname:</b> ${ipDetails.ipDetails.hostname} <br>
+                    <b>Location (Coordinates):</b> ${ipDetails.ipDetails.loc}
+                `
+            };
+        } else {
+            return {
+                success: false,
+                message: ipDetails.message
+            };
+        }
+    }
+
     return {
         success: false,
         message: '⚠️ Command not recognized. Type /help for available command.'
     };
 };
-
 
 app.post('/execute-command', async (req, res) => {
     const { command } = req.body;
@@ -205,7 +230,7 @@ app.post('/execute-command', async (req, res) => {
     res.json(result); 
 });
 
-
-app.listen(PORT, () => {
+// Server setup to listen on all interfaces (0.0.0.0)
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });
