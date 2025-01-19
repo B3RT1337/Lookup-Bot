@@ -182,7 +182,7 @@
 
                 
                 try {
-                    const response = await fetch('http://localhost:3000/execute-command', {
+                    const response = await fetch('http://localhost:3000/execute-command', { // change the ip server
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ command: message })
